@@ -1,0 +1,78 @@
+use std::thread;
+use std::thread::sleep;
+use std::time::Duration;
+
+use actix_web::http::StatusCode;
+use actix_web::{middleware, web, App, HttpResponse, HttpServer, Responder};
+use once_cell::sync::Lazy;
+
+use crate::db_helper::MySQLConnection;
+
+mod db_helper;
+
+pub static MYSQL: Lazy<MySQLConnection> = Lazy::new(|| MySQLConnection::new());
+
+/// Default path
+async fn index() -> actix_web::Result<HttpResponse> {
+    Ok(HttpResponse::build(StatusCode::OK)
+        .content_type("text/html; charset=utf-8")
+        .body(include_str!("../static/dist/index.html")))
+}
+
+async fn graph() -> impl Responder {
+    match MYSQL.get_data().await {
+        Ok(data) => {
+            let result = serde_json::to_string(&data).expect("Error unwrapping results");
+            HttpResponse::Ok().json(result)
+        }
+        Err(why) => {
+            eprint!("Error when retrieving data from database: {}", why);
+            HttpResponse::InternalServerError().body("Error retrieving data")
+        }
+    }
+}
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    dotenv::dotenv().ok();
+    thread::spawn(move || {
+        if let Err(why) = data_runner() {
+            eprintln!("Error {}", why);
+        }
+    });
+
+    HttpServer::new(|| {
+        App::new()
+            .wrap(middleware::Logger::default())
+            .service(web::resource("/api/graph").route(web::get().to(graph)))
+            .service(web::resource("/").route(web::get().to(index)))
+            .service(actix_files::Files::new("/", "static/dist/").show_files_listing())
+    })
+    .bind("127.0.0.1:8010")?
+    .run()
+    .await
+}
+
+#[tokio::main]
+async fn data_runner() -> Result<(), Box<dyn std::error::Error>> {
+    let url = "https://revofitness.com.au/wp-content/themes/blankslate/member_visits_api_calls/innaloo.json";
+
+    loop {
+        let count = reqwest::Client::new()
+            .get(url)
+            .send()
+            .await?
+            .json::<i32>()
+            .await?;
+
+        let insert = format!(
+            "INSERT INTO `revo-data`.`graph-data` (`date_time`, count) VALUES (current_time, {});",
+            count
+        );
+
+        MYSQL.execute_update(&insert).await;
+
+        // Sleep for a minute!
+        sleep(Duration::from_secs(60));
+    }
+}
