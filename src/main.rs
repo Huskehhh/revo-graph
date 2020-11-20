@@ -73,6 +73,6 @@ async fn data_runner() -> Result<(), Box<dyn std::error::Error>> {
         MYSQL.execute_update(&insert).await;
 
         // Sleep for a minute!
-        sleep(Duration::from_secs(60));
+        sleep(Duration::from_secs(600));
     }
 }

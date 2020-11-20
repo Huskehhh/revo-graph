@@ -3,4 +3,4 @@ cd static
 yarn install
 yarn build -g
 cd ..
-cargo run --release
+screen -S revo cargo run --release
