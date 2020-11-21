@@ -63,7 +63,7 @@ async fn data_runner() -> Result<(), Box<dyn std::error::Error>> {
             .send()
             .await?
             .json::<i32>()
-            .await?;
+            .await.unwrap_or(0);
 
         let insert = format!(
             "INSERT INTO `revo-data`.`graph-data` (`date_time`, count) VALUES (current_time, {});",
