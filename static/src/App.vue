@@ -1,6 +1,8 @@
 <template>
   <div id="app">
-    <LineChart v-if="loaded" :graph-data="chartData" :styles="styles"/>
+    <LineChart v-if="loaded" :graph-data="chartData" :styles="myStyles"/>
+    <button @click="increase()">Increase size</button>
+    <button @click="decrease()">Decrease size</button>
   </div>
 </template>
 
@@ -14,21 +16,37 @@ export default {
   },
   data() {
     return {
+      height: 600,
+      width: 1000,
       loaded: false,
       chartData: null,
-      styles: {
-        width: "50%",
-        height: "50%",
-        position: "relative",
-        margin: "auto"
-      }
     };
+  },
+  methods: {
+    increase() {
+      this.height += 50;
+      this.width += 100;
+    },
+    decrease() {
+      this.height -= 50;
+      this.width -= 100;
+    }
   },
   mounted() {
     this.axios.get("/api/graph").then((response) => {
       this.loaded = true;
       this.chartData = JSON.parse(response.data);
     });
+  },
+  computed: {
+    myStyles() {
+      return {
+        height: `${this.height}px`,
+        width: `${this.width}px`,
+        position: 'relative',
+        margin: 'auto'
+      }
+    }
   }
 }
 </script>
@@ -39,7 +57,11 @@ export default {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  color: #097aec;
   margin-top: 60px;
+}
+
+body, html {
+  background: #242424;
 }
 </style>

@@ -12,7 +12,7 @@ export default {
       datasets: [
         {
           label: "Active members",
-          backgroundColor: "#f87979",
+          backgroundColor: "#1f75d0",
           data: []
         }
       ]
@@ -29,9 +29,10 @@ export default {
       responsive: true,
       maintainAspectRatio: false
     })
-  },
+  }
 }
 </script>
 
 <style>
+
 </style>
