@@ -13,6 +13,5 @@ RUN apt-get install mariadb-client -y
 COPY --from=builder /usr/local/cargo/bin/revo-graph /
 
 COPY static /static
-COPY migrations /migrations
 
 CMD ["./revo-graph"]
