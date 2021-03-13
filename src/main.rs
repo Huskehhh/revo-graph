@@ -1,6 +1,6 @@
-use std::{env, thread};
 use std::thread::sleep;
 use std::time::Duration;
+use std::{env, thread};
 
 use actix_web::http::StatusCode;
 use actix_web::{middleware, web, App, HttpResponse, HttpServer, Responder};
@@ -44,6 +44,8 @@ async fn main() -> std::io::Result<()> {
         }
     });
 
+    println!("Starting up the server now!");
+
     HttpServer::new(|| {
         App::new()
             .wrap(middleware::Logger::default())
@@ -70,7 +72,7 @@ async fn data_runner() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap_or(0);
 
         let insert = format!(
-            "INSERT INTO `graph_data` (`date_time`, `count`) VALUES (current_time, {});",
+            "INSERT INTO `graph_data` (`date_time`, `count`) VALUES (current_timestamp, '{}');",
             count
         );
 

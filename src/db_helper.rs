@@ -48,7 +48,7 @@ impl MySQLConnection {
 
         Ok(conn
             .query_map(
-                "SELECT date_time, count FROM `revo-data`.`graph-data` WHERE `date_time` > date_sub(now(), interval 5 day);",
+                "SELECT `date_time`, `count` FROM `graph_data` WHERE `date_time` > date_sub(now(), interval 5 day);",
                 |(date_time, count)| {
                     Data {date_time, count}
                 },
