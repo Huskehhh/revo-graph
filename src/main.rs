@@ -72,7 +72,7 @@ async fn data_runner() -> Result<(), Box<dyn std::error::Error>> {
             .unwrap_or(0);
 
         let insert = format!(
-            "INSERT INTO `graph_data` (`date_time`, `count`) VALUES (current_timestamp, '{}');",
+            "INSERT INTO `graph_data` (`date_time`, `count`) VALUES (CONVERT_TZ(CURRENT_TIMESTAMP, 'Australia/Melbourne', 'Australia/Perth'), '{}');",
             count
         );
 
