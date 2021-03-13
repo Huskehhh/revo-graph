@@ -1,37 +1,52 @@
-use mysql::{PooledConn, Pool};
-use std::env;
-use mysql::prelude::Queryable;
-use serde::{Serialize, Deserialize};
+extern crate mysql;
+extern crate r2d2;
+extern crate r2d2_mysql;
+
+use mysql::{Opts, OptsBuilder, prelude::Queryable};
+use r2d2_mysql::{MysqlConnectionManager};
+use serde::{Deserialize, Serialize};
 use std::error::Error;
+use std::{env, sync::Arc};
 
 pub struct MySQLConnection {
-    pub pool: Pool,
+    pub pool: Arc<r2d2::Pool<MysqlConnectionManager>>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Data {
     pub date_time: String,
-    pub count: i32
+    pub count: i32,
 }
 
 impl MySQLConnection {
     pub fn new() -> MySQLConnection {
-        let url = env::var("MYSQL_DB_CONN_STR").expect("No MySQL_DB_CONN_STR env var!");
-        let pool = Pool::new(&url).unwrap();
+        let url = env::var("DATABASE_URL").expect("No 'DATABASE_URL' env var!");
+        let opts = Opts::from_url(&url).unwrap();
+        let builder = OptsBuilder::from_opts(opts);
+        let manager = MysqlConnectionManager::new(builder);
+        let pool = Arc::new(r2d2::Pool::builder().max_size(10).build(manager).unwrap());
+
         MySQLConnection { pool }
     }
 
     pub async fn execute_update(&self, statement: &str) {
-        let conn: &mut PooledConn = &mut self.pool.get_conn().unwrap();
+        let conn = &mut self
+            .pool
+            .get()
+            .expect("Unable to get connection from pool");
+
         if let Err(why) = conn.query_drop(statement) {
             println!("{}", why);
         }
     }
 
     pub async fn get_data(&self) -> Result<Vec<Data>, Box<dyn Error>> {
-        let conn: &mut PooledConn = &mut self.pool.get_conn()?;
+        let conn = &mut self
+            .pool
+            .get()
+            .expect("Unable to get connection from pool");
 
-       Ok(conn
+        Ok(conn
             .query_map(
                 "SELECT date_time, count FROM `revo-data`.`graph-data` WHERE `date_time` > date_sub(now(), interval 5 day);",
                 |(date_time, count)| {
