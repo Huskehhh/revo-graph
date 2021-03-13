@@ -1,4 +1,4 @@
-use std::thread;
+use std::{env, thread};
 use std::thread::sleep;
 use std::time::Duration;
 
@@ -35,6 +35,9 @@ async fn graph() -> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
+
+    let bind_address = env::var("BIND_ADDRESS").unwrap_or("127.0.0.1:8010".to_owned());
+
     thread::spawn(move || {
         if let Err(why) = data_runner() {
             eprintln!("Error {}", why);
@@ -48,7 +51,7 @@ async fn main() -> std::io::Result<()> {
             .service(web::resource("/").route(web::get().to(index)))
             .service(actix_files::Files::new("/", "static/dist/").show_files_listing())
     })
-    .bind("127.0.0.1:8010")?
+    .bind(bind_address)?
     .run()
     .await
 }
