@@ -39,8 +39,12 @@ async fn main() -> std::io::Result<()> {
     let bind_address = env::var("BIND_ADDRESS").unwrap_or("127.0.0.1:8010".to_owned());
 
     thread::spawn(move || {
-        if let Err(why) = data_runner() {
-            eprintln!("Error {}", why);
+        loop {
+            if let Err(why) = data_runner() {
+                eprintln!("Error {}", why);
+            }
+            // Sleep for a minute!
+            sleep(Duration::from_secs(600));
         }
     });
 
@@ -61,24 +65,21 @@ async fn main() -> std::io::Result<()> {
 #[tokio::main]
 async fn data_runner() -> Result<(), Box<dyn std::error::Error>> {
     let url = "https://revofitness.com.au/wp-content/themes/blankslate/member_visits_api_calls/innaloo.json";
+    let count = reqwest::Client::new()
+        .get(url)
+        .send()
+        .await
+        .expect("Something went wrong with the GET request!")
+        .json::<i32>()
+        .await
+        .unwrap_or(0);
 
-    loop {
-        let count = reqwest::Client::new()
-            .get(url)
-            .send()
-            .await?
-            .json::<i32>()
-            .await
-            .unwrap_or(0);
-
-        let insert = format!(
+    let insert = format!(
             "INSERT INTO `graph_data` (`date_time`, `count`) VALUES (CONVERT_TZ(CURRENT_TIMESTAMP, 'Australia/Melbourne', 'Australia/Perth'), '{}');",
             count
         );
 
-        MYSQL.execute_update(&insert).await;
+    MYSQL.execute_update(&insert).await;
 
-        // Sleep for a minute!
-        sleep(Duration::from_secs(600));
-    }
+    Ok(())
 }

@@ -20,5 +20,5 @@ mysql = "20.0.1"
 r2d2 = "0.8.9"
 
 [dependencies.r2d2_mysql]
-git = "https://github.com/Huskehhh/r2d2-mysql"
+git = "https://github.com/outersky/r2d2-mysql"
 version = "*"

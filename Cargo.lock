@@ -1699,7 +1699,7 @@ dependencies = [
 [[package]]
 name = "r2d2_mysql"
 version = "18.0.0"
-source = "git+https://github.com/Huskehhh/r2d2-mysql#e950c14c9df59a2b4447e2eb7b2fc178630dbb62"
+source = "git+https://github.com/outersky/r2d2-mysql#74884ec5c163e93d351bee0f4dfa4332c28356fc"
 dependencies = [
  "mysql",
  "r2d2",
