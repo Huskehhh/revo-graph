@@ -1,3 +1,8 @@
+#[macro_use]
+extern crate failure;
+
+use failure::Error;
+
 use std::thread::sleep;
 use std::time::Duration;
 use std::{env, thread};
@@ -10,7 +15,7 @@ use crate::db_helper::MySQLConnection;
 
 mod db_helper;
 
-pub static MYSQL: Lazy<MySQLConnection> = Lazy::new(|| MySQLConnection::new());
+pub static MYSQL: Lazy<MySQLConnection> = Lazy::new(MySQLConnection::default);
 
 /// Default path
 async fn index() -> actix_web::Result<HttpResponse> {
@@ -36,7 +41,7 @@ async fn graph() -> impl Responder {
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
 
-    let bind_address = env::var("BIND_ADDRESS").unwrap_or("127.0.0.1:8010".to_owned());
+    let bind_address = env::var("BIND_ADDRESS").unwrap_or_else(|_| "127.0.0.1:8010".to_owned());
 
     thread::spawn(move || {
         loop {
@@ -63,23 +68,24 @@ async fn main() -> std::io::Result<()> {
 }
 
 #[tokio::main]
-async fn data_runner() -> Result<(), Box<dyn std::error::Error>> {
+async fn data_runner() -> Result<(), Error> {
     let url = "https://revofitness.com.au/wp-content/themes/blankslate/member_visits_api_calls/innaloo.json";
-    let count = reqwest::Client::new()
-        .get(url)
-        .send()
-        .await
-        .expect("Something went wrong with the GET request!")
-        .json::<i32>()
-        .await
-        .unwrap_or(0);
 
-    let insert = format!(
+    return match reqwest::Client::new().get(url).send().await {
+        Ok(resp) => {
+            let count = resp.json::<i32>().await.unwrap_or(0);
+
+            let insert = format!(
             "INSERT INTO `graph_data` (`date_time`, `count`) VALUES (CONVERT_TZ(CURRENT_TIMESTAMP, 'Australia/Melbourne', 'Australia/Perth'), '{}');",
             count
         );
 
-    MYSQL.execute_update(&insert).await;
+            MYSQL.execute_update(&insert).await;
 
-    Ok(())
+            Ok(())
+        }
+        Err(why) => {
+            Err(format_err!("Error on the GET request... {}", why))
+        }
+    }
 }

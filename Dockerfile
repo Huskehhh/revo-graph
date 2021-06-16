@@ -1,4 +1,4 @@
-FROM rust:1.50.0 as builder
+FROM rust:latest as builder
 
 WORKDIR /usr/src/revo-graph
 COPY . .
@@ -14,6 +14,6 @@ RUN apt-get install openssl -y
 
 COPY --from=builder /usr/local/cargo/bin/revo-graph /
 
-COPY static /static
+COPY static/build /static
 
 CMD ["./revo-graph"]

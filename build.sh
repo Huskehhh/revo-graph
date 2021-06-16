@@ -2,5 +2,5 @@
 
 git pull
 cd static
-yarn install
-yarn build -g
+npm install
+npm run build
