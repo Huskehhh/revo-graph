@@ -9,6 +9,8 @@
 <script>
 import LineChart from "./components/LineChart";
 
+const API_URL = process.env.API_URL;
+
 export default {
   name: 'App',
   components: {
@@ -33,7 +35,7 @@ export default {
     }
   },
   mounted() {
-    this.axios.get("/api/graph").then((response) => {
+    this.axios.get(API_URL + "/graph").then((response) => {
       this.loaded = true;
       this.chartData = JSON.parse(response.data);
     });

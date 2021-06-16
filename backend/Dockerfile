@@ -14,6 +14,4 @@ RUN apt-get install openssl -y
 
 COPY --from=builder /usr/local/cargo/bin/revo-graph /
 
-COPY static/dist /static
-
 CMD ["./revo-graph"]

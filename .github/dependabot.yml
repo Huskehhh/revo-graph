@@ -1,0 +1,14 @@
+version: 2
+updates:
+# Maintain dependencies for the backend module
+- package-ecosystem: cargo
+  directory: "/backend"
+  schedule:
+    interval: daily
+
+# Maintain dependencies for the frontend module
+- package-ecosystem: npm
+  directory: "/frontend"
+  schedule:
+    interval: daily
+

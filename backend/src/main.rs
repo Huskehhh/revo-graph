@@ -1,14 +1,14 @@
 #[macro_use]
 extern crate failure;
 
+use actix_cors::Cors;
 use failure::Error;
 
 use std::thread::sleep;
 use std::time::Duration;
 use std::{env, thread};
 
-use actix_web::http::StatusCode;
-use actix_web::{middleware, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, middleware, App, HttpResponse, HttpServer, Responder};
 use once_cell::sync::Lazy;
 
 use crate::db_helper::MySQLConnection;
@@ -17,13 +17,7 @@ mod db_helper;
 
 pub static MYSQL: Lazy<MySQLConnection> = Lazy::new(MySQLConnection::default);
 
-/// Default path
-async fn index() -> actix_web::Result<HttpResponse> {
-    Ok(HttpResponse::build(StatusCode::OK)
-        .content_type("text/html; charset=utf-8")
-        .body(include_str!("../static/dist/index.html")))
-}
-
+#[get("/graph")]
 async fn graph() -> impl Responder {
     match MYSQL.get_data().await {
         Ok(data) => {
@@ -40,15 +34,17 @@ async fn graph() -> impl Responder {
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv::dotenv().ok();
+    std::env::set_var("RUST_LOG", "actix_web=info");
+    env_logger::init();
 
     let bind_address = env::var("BIND_ADDRESS").unwrap_or_else(|_| "127.0.0.1:8010".to_owned());
 
     thread::spawn(move || {
+        let url = "https://revofitness.com.au/wp-content/themes/blankslate/member_visits_api_calls/innaloo.json";
         loop {
-            if let Err(why) = data_runner() {
+            if let Err(why) = data_runner(url) {
                 eprintln!("Error {}", why);
             }
-            // Sleep for a minute!
             sleep(Duration::from_secs(600));
         }
     });
@@ -56,11 +52,16 @@ async fn main() -> std::io::Result<()> {
     println!("Starting up the server now!");
 
     HttpServer::new(|| {
+        let allowed_origin =
+            env::var("ALLOWED_ORIGIN").expect("No ALLOWED_ORIGIN environment variable set!");
+
+        let cors = Cors::default()
+            .allowed_origin(&allowed_origin)
+            .allowed_methods(vec!["GET"]);
         App::new()
+            .wrap(cors)
             .wrap(middleware::Logger::default())
-            .service(web::resource("/api/graph").route(web::get().to(graph)))
-            .service(web::resource("/").route(web::get().to(index)))
-            .service(actix_files::Files::new("/", "static/dist/").show_files_listing())
+            .service(graph)
     })
     .bind(bind_address)?
     .run()
@@ -68,9 +69,7 @@ async fn main() -> std::io::Result<()> {
 }
 
 #[tokio::main]
-async fn data_runner() -> Result<(), Error> {
-    let url = "https://revofitness.com.au/wp-content/themes/blankslate/member_visits_api_calls/innaloo.json";
-
+async fn data_runner(url: &str) -> Result<(), Error> {
     return match reqwest::Client::new().get(url).send().await {
         Ok(resp) => {
             let count = resp.json::<i32>().await.unwrap_or(0);
@@ -84,8 +83,6 @@ async fn data_runner() -> Result<(), Error> {
 
             Ok(())
         }
-        Err(why) => {
-            Err(format_err!("Error on the GET request... {}", why))
-        }
-    }
+        Err(why) => Err(format_err!("Error on the GET request... {}", why)),
+    };
 }
