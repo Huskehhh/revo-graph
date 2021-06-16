@@ -1,7 +1,7 @@
 FROM rust:latest as builder
 
 WORKDIR /usr/src/revo-graph
-COPY . .
+COPY backend .
 
 RUN cargo install --path .
 
