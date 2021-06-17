@@ -9,7 +9,7 @@
 <script>
 import LineChart from "./components/LineChart";
 
-const API_URL = process.env.API_URL;
+const API_URL = process.env.VUE_APP_API_URL;
 
 export default {
   name: 'App',
