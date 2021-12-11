@@ -1,0 +1,38 @@
+name: Project CI
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  poller:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: Swatinem/rust-cache@v1
+        with:
+          working-directory: .
+      - uses: extractions/setup-just@v1
+      - name: Build poller project
+        run: just check
+      - name: Run tests for poller
+        run: just test
+
+  ui:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: cd ui && npm install
+      - run: cd ui && npm run build --if-present

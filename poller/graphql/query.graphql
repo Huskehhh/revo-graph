@@ -1,0 +1,6 @@
+  query GetGyms {
+    revo_gyms {
+      id
+      name
+    }
+  }

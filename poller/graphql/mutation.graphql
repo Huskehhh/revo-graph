@@ -1,0 +1,5 @@
+mutation AddGraphEntryMutation($count: Int!, $epoch: bigint!, $gym_id: Int!) {
+  insert_revo_graph_data_one(object: {count: $count, epoch: $epoch, gym_id: $gym_id}) {
+    entry
+  }
+}

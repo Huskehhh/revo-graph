@@ -1,0 +1,25 @@
+.graph-header {
+    background-color: #282c34;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    color: white;
+}
+
+.graph-buttons {
+    background-color: #282c34;
+    display: flex;
+    justify-content: center;
+}
+
+.graph {
+    background-color: #282c34;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
