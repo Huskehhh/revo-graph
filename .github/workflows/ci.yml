@@ -19,9 +19,9 @@ jobs:
           working-directory: .
       - uses: extractions/setup-just@v1
       - name: Build poller project
-        run: just check
+        run: cd poller && just check
       - name: Run tests for poller
-        run: just test
+        run: cd poller && just test
 
   ui:
     runs-on: ubuntu-latest
