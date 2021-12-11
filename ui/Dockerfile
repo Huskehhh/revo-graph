@@ -1,4 +1,4 @@
-FROM node:current-alpine3.12 as builder
+FROM node:16-alpine3.12 as builder
 WORKDIR /app
 COPY . .
 RUN npm i
