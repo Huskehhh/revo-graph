@@ -1,11 +1,10 @@
 import { gql, useQuery } from '@apollo/client';
 import { Alert, LinearProgress } from '@mui/material';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 import Graph from '../Graph/Graph';
 
 const GET_GRAPH_DATA = gql`
-  query GetGraphData($gymId: Int = 1) {
+  query GetGraphData($gymId: Int!) {
     revo_graph_data(where: {gym_id: {_eq: $gymId}}, order_by: {entry: desc}) {
       count
       epoch

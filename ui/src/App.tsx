@@ -7,7 +7,6 @@ import {
 } from "react-router-dom";
 
 import './App.css';
-import Gym from './components/Gym/Gym';
 import Home from './components/Home/Home';
 
 export default function App() {

@@ -16,10 +16,17 @@
 
 .graph {
     background-color: #282c34;
-    min-height: 100vh;
+    max-height: 80vh;
+    max-width: 80vh;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     color: white;
+    font-size: 15px;
+}
+
+.current-member-count {
+    text-align: center;
+    font-size: 20px;
 }

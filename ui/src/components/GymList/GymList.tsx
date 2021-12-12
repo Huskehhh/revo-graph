@@ -46,20 +46,21 @@ export default function GymList(): JSX.Element {
     <div className={"gym-wrapper"}>
       {loading && <LinearProgress color="success" />}
       {error && <Alert severity="error">{error.message}</Alert>}
+      <div className={"enabled-gyms"}>
+        {enabledGyms && enabledGyms.map((gymId: number) =>
+          <Gym key={gymId} gymId={gymId} />
+        )}
+      </div>
       <div className={"gym-toggles"}>
         <FormGroup row>
           {gyms && gyms.map((gym: GymData) =>
-            <GymFormGroup key={gym.id}
+            <GymFormGroup
+              key={gym.id}
               gymName={gym.name}
               gymId={gym.id}
               onToggle={handleToggle}
               defaultChecked={gym.id === 1} />)}
         </FormGroup>
-      </div>
-      <div className={"enabled-gyms"}>
-        {gyms && gyms.map((gym: GymData) =>
-          <Gym gymId={gym.id} />
-        )}
       </div>
     </div>
   );

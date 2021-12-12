@@ -49,7 +49,8 @@ async fn main() -> Result<()> {
     let hasura_client = create_hasura_reqwest_client(&hasura_api_key)?;
 
     let variables = get_gyms::Variables {};
-    let response_body = post_graphql::<GetGyms, _>(&hasura_client, &hasura_api_url, variables).await?;
+    let response_body =
+        post_graphql::<GetGyms, _>(&hasura_client, &hasura_api_url, variables).await?;
 
     if let Some(data) = response_body.data {
         let gyms = data.revo_gyms;
@@ -90,11 +91,19 @@ pub async fn data_runner(
             let variables = add_graph_entry_mutation::Variables {
                 count,
                 epoch: unix_epoch,
-                gym_id: gym.id
+                gym_id: gym.id,
             };
 
             println!("Adding entry for gym: {} with count of {}", gym.name, count);
-            post_graphql::<AddGraphEntryMutation, _>(hasura_client, hasura_api_url, variables).await?;
+            let submit_response =
+                post_graphql::<AddGraphEntryMutation, _>(hasura_client, hasura_api_url, variables)
+                    .await?;
+
+            if let Some(why) = submit_response.errors {
+                why.iter().for_each(|why| {
+                    eprintln!("Error when submitting data: {}", why.message);
+                });
+            }
 
             Ok(())
         }

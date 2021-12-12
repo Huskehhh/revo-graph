@@ -3,9 +3,7 @@ import { useEffect, useState } from 'react';
 import { GraphReponseData } from '../Gym/Gym';
 import { Line, LineChart, ReferenceArea, Tooltip, TooltipProps, XAxis, YAxis } from 'recharts';
 import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
-import { Link } from 'react-router-dom';
 import { Alert, Fab } from '@mui/material';
-import HomeIcon from '@mui/icons-material/Home';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import './Graph.css';
 
@@ -46,11 +44,6 @@ export default function Graph(props: GraphProps) {
 
     useEffect(() => {
         if (!props.loading && props.graphResponseData) {
-            // If exists, set gym name.
-            if (props.graphResponseData.revo_gyms.length > 0) {
-                setGymName(props.graphResponseData.revo_gyms[0].name);
-            }
-
             let graphPoints = [];
             for (let i = 0; i < props.graphResponseData.revo_graph_data.length; i++) {
                 let entry = props.graphResponseData.revo_graph_data[i];
@@ -66,6 +59,12 @@ export default function Graph(props: GraphProps) {
             }
 
             originalData = graphPoints;
+
+            // If exists, set gym name.
+            if (props.graphResponseData.revo_gyms.length > 0) {
+                setGymName(props.graphResponseData.revo_gyms[0].name);
+            }
+
             setGraphData(graphPoints);
         }
     }, [props.loading, props.graphResponseData]);
@@ -102,18 +101,14 @@ export default function Graph(props: GraphProps) {
                 <h1>Members at {gymName}</h1>
             </header>
             <div className={"graph-buttons"}>
-                <Link to={"/"}>
-                    <Fab color="primary" aria-label="home">
-                        <HomeIcon />
-                    </Fab>
-                </Link>
                 <Fab color="secondary" aria-label="zoom" onClick={zoomOut}>
                     <ZoomOutIcon />
                 </Fab>
             </div>
+            {graphData && <p className={"current-member-count"}>{graphData[graphData.length - 1].count} members currently at {gymName}</p>}
             <div className="graph">
                 {graphData && graphData.length === 0 && <Alert severity="error">Error. No graph data found.</Alert>}
-                {!graphData &&
+                {graphData &&
                     <LineChart width={800} height={400} data={graphData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
                         onMouseDown={(e: any) => {
                             setSelecting(true);
