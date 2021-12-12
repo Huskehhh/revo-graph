@@ -10,14 +10,14 @@ import './Graph.css';
 export interface GraphProps {
     graphResponseData: GraphReponseData,
     loading: boolean,
-};
+}
 
 export interface OriginalGraphData {
     date: string,
     count: number,
-};
+}
 
-let originalData: OriginalGraphData[];
+let originalData: Map<string, OriginalGraphData[]> = new Map();
 
 const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>): JSX.Element | null => {
     if (active && payload !== null) {
@@ -34,7 +34,8 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
 
 export default function Graph(props: GraphProps) {
     const [gymName, setGymName] = useState("Unknown gym");
-    const [graphData, setGraphData] = useState(originalData);
+    const [graphData, setGraphData] = useState<OriginalGraphData[]>([]);
+    const [currentActiveMembers, setCurrentActiveMembers] = useState(0);
 
     const [selecting, setSelecting] = useState(false);
     const [refAreaLeft, setRefAreaLeft] = useState(0);
@@ -44,7 +45,7 @@ export default function Graph(props: GraphProps) {
 
     useEffect(() => {
         if (!props.loading && props.graphResponseData) {
-            let graphPoints = [];
+            let graphPoints: OriginalGraphData[] = [];
             for (let i = 0; i < props.graphResponseData.revo_graph_data.length; i++) {
                 let entry = props.graphResponseData.revo_graph_data[i];
 
@@ -58,14 +59,15 @@ export default function Graph(props: GraphProps) {
                 graphPoints.push({ date: niceDateString, count: entry.count });
             }
 
-            originalData = graphPoints;
+            graphPoints = graphPoints.reverse();
+            setGraphData(graphPoints);
+            originalData.set(props.graphResponseData.revo_gyms[0].name, graphPoints);
+            setCurrentActiveMembers(graphPoints[graphPoints.length - 1].count);
 
             // If exists, set gym name.
             if (props.graphResponseData.revo_gyms.length > 0) {
                 setGymName(props.graphResponseData.revo_gyms[0].name);
             }
-
-            setGraphData(graphPoints);
         }
     }, [props.loading, props.graphResponseData]);
 
@@ -90,8 +92,9 @@ export default function Graph(props: GraphProps) {
     };
 
     let zoomOut = () => {
-        if (originalData) {
-            setGraphData(originalData);
+        if (originalData.has(gymName)) {
+            const data: OriginalGraphData[] = originalData.get(gymName)!!;
+            setGraphData(data);
         }
     };
 
@@ -105,7 +108,7 @@ export default function Graph(props: GraphProps) {
                     <ZoomOutIcon />
                 </Fab>
             </div>
-            {graphData && <p className={"current-member-count"}>{graphData[graphData.length - 1].count} members currently at {gymName}</p>}
+            {graphData && <p className={"current-member-count"}>{currentActiveMembers} members currently at {gymName}</p>}
             <div className="graph">
                 {graphData && graphData.length === 0 && <Alert severity="error">Error. No graph data found.</Alert>}
                 {graphData &&
