@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FormControlLabel, Switch } from '@mui/material';
+import {FormControlLabel, Switch} from '@mui/material';
 
 export interface GymFormGroupProps {
     gymName: string,
@@ -14,6 +14,7 @@ export default function GymFormGroup(props: GymFormGroupProps) {
     };
 
     return (
-        <FormControlLabel control={<Switch defaultChecked={props.defaultChecked} />} label={props.gymName} onChange={handleChange} labelPlacement="top" />
+        <FormControlLabel control={<Switch defaultChecked={props.defaultChecked}/>} label={props.gymName}
+                          onChange={handleChange} labelPlacement="top"/>
     );
 }
