@@ -11,7 +11,7 @@ import {
 } from "@apollo/client";
 
 const client = new ApolloClient({
-    uri: 'https://hasura.mandalore.husk.cloud/v1/graphql',
+    uri: 'https://revo.hasura.husk.pro/v1/graphql',
     cache: new InMemoryCache()
 });
 

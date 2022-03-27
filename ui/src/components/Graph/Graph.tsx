@@ -1,11 +1,12 @@
 import * as React from 'react';
-import {useEffect, useState} from 'react';
-import {GraphReponseData} from '../Gym/Gym';
-import {Line, LineChart, ReferenceArea, Tooltip, TooltipProps, XAxis, YAxis} from 'recharts';
-import {NameType, ValueType} from 'recharts/types/component/DefaultTooltipContent';
-import {Alert, Fab} from '@mui/material';
+import { useEffect, useState } from 'react';
+import { GraphReponseData } from '../Gym/Gym';
+import { Line, LineChart, ReferenceArea, ResponsiveContainer, Tooltip, TooltipProps, XAxis, YAxis } from 'recharts';
+import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
+import { Alert, Fab } from '@mui/material';
 import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import './Graph.css';
+import { BrowserView } from 'react-device-detect';
 
 export interface GraphProps {
     graphResponseData: GraphReponseData,
@@ -19,7 +20,7 @@ export interface OriginalGraphData {
 
 let originalData: Map<string, OriginalGraphData[]> = new Map();
 
-const CustomTooltip = ({active, payload, label}: TooltipProps<ValueType, NameType>): JSX.Element | null => {
+const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>): JSX.Element | null => {
     if (active && payload !== null) {
         return (
             <div className="custom-tooltip">
@@ -56,7 +57,7 @@ export default function Graph(props: GraphProps) {
                 let niceDate = dateString.replaceAll(dateString.split(" ")[3], "");
                 let niceDateString = niceDate + date.toLocaleTimeString();
 
-                graphPoints.push({date: niceDateString, count: entry.count});
+                graphPoints.push({ date: niceDateString, count: entry.count });
             }
 
             graphPoints = graphPoints.reverse();
@@ -103,38 +104,49 @@ export default function Graph(props: GraphProps) {
             <header className="graph-header">
                 <h1>Members at {gymName}</h1>
             </header>
-            <div className={"graph-buttons"}>
-                <Fab color="secondary" aria-label="zoom" onClick={zoomOut}>
-                    <ZoomOutIcon/>
-                </Fab>
-            </div>
+
+            <BrowserView>
+                <div className={"graph-buttons"}>
+                    <Fab color="secondary" aria-label="zoom" onClick={zoomOut}>
+                        <ZoomOutIcon />
+                    </Fab>
+                </div>
+            </BrowserView>
+
             {graphData &&
-                <p className={"current-member-count"}>{currentActiveMembers} members currently at {gymName}</p>}
+                <div>
+                    <p className={"current-member-count"}>{currentActiveMembers} members currently at {gymName}</p>
+                </div>
+            }
             <div className="graph">
                 {graphData && graphData.length === 0 && <Alert severity="error">Error. No graph data found.</Alert>}
                 {graphData &&
-                    <LineChart width={800} height={400} data={graphData}
-                               margin={{top: 5, right: 20, bottom: 5, left: 0}}
-                               onMouseDown={(e: any) => {
-                                   setSelecting(true);
-                                   setRefAreaLeft(e.activeLabel);
-                                   setRefAreaLeftIndex(e.activeTooltipIndex);
-                               }}
-                               onMouseMove={(e: any) => {
-                                   if (selecting && refAreaLeft) {
-                                       setRefAreaRight(e.activeLabel);
-                                       setRefAreaRightIndex(e.activeTooltipIndex);
-                                   }
-                               }}
-                               onMouseUp={zoom}>
-                        <XAxis dataKey={"date"} type={"category"}/>
-                        <YAxis yAxisId="1"/>
-                        <Line type="monotone" dataKey="count" stroke="#8884d8" yAxisId="1"/>
-                        <Tooltip content={<CustomTooltip/>}/>
+                    <BrowserView>
+                        <ResponsiveContainer className={"graph-container"}>
+                            <LineChart data={graphData}
+                                margin={{ top: 5, right: 20, bottom: 5, left: 0 }}
+                                onMouseDown={(e: any) => {
+                                    setSelecting(true);
+                                    setRefAreaLeft(e.activeLabel);
+                                    setRefAreaLeftIndex(e.activeTooltipIndex);
+                                }}
+                                onMouseMove={(e: any) => {
+                                    if (selecting && refAreaLeft) {
+                                        setRefAreaRight(e.activeLabel);
+                                        setRefAreaRightIndex(e.activeTooltipIndex);
+                                    }
+                                }}
+                                onMouseUp={zoom}>
+                                <XAxis dataKey={"date"} type={"category"} />
+                                <YAxis yAxisId="1" />
+                                <Line type="monotone" dataKey="count" stroke="#8884d8" yAxisId="1" />
+                                <Tooltip content={<CustomTooltip />} />
 
-                        {refAreaLeft !== 0 && refAreaRight !== 0 ? (
-                            <ReferenceArea yAxisId="1" x1={refAreaLeft} x2={refAreaRight} strokeOpacity={0.8}/>) : null}
-                    </LineChart>
+                                {refAreaLeft !== 0 && refAreaRight !== 0 ? (
+                                    <ReferenceArea yAxisId="1" x1={refAreaLeft} x2={refAreaRight} strokeOpacity={0.8} />) : null}
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </BrowserView>
                 }
             </div>
         </div>
